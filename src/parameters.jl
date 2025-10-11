@@ -1,6 +1,6 @@
 module parameters
 
-export swparams
+export default_params
 
 struct swparams
     a::float64
