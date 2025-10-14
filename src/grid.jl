@@ -2,7 +2,7 @@ module grid
 
 export build_grid
 
-struct grid
+struct Grid
     nx::Int           # number of longitude points
     ny::Int           # number of latitude points
     lon::Array{Float64,1}  # longitude array [rad]
@@ -32,5 +32,5 @@ function build_grid(params)
         end
     end
 
-    return grid(nx, ny, lon, lat, dlon, dlat, coslat, cell_area)
+    return Grid(nx, ny, lon, lat, dlon, dlat, coslat, cell_area)
 end

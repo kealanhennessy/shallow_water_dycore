@@ -32,5 +32,6 @@ function default_params()
         write_interval = 1800.0,
         CFL = 0.25
     )
+end
 
 end # module
