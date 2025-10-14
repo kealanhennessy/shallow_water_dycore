@@ -29,8 +29,8 @@ function (a::Field) .= (b::Field)
 end
 
 function init_fields(g::grid.Grid)
-    h = allocate_field(grid, name=:h, units="m")
-    u = allocate_field(grid, name=:u, units="m/s")
-    v = allocate_field(grid, name=:v, units="m/s")
+    h = allocate_field(g, name=:h, units="m")
+    u = allocate_field(g, name=:u, units="m/s")
+    v = allocate_field(g, name=:v, units="m/s")
     return (h=h, u=u, v=v)
 end
