@@ -8,7 +8,7 @@ struct Field
     units::String
 end
 
-function allocate_field(g::grid.Grid; name::Symbol=:unnamed, units::String="" )
+function allocate_field(g::Grid; name::Symbol=:unnamed, units::String="" )
     data = zeros(g.nx, g.ny)
     return Field(
         data,
@@ -28,7 +28,7 @@ function (a::Field) .= (b::Field)
     a.data .= b.data
 end
 
-function init_fields(g::grid.Grid)
+function init_fields(g::Grid)
     h = allocate_field(g, name=:h, units="m")
     u = allocate_field(g, name=:u, units="m/s")
     v = allocate_field(g, name=:v, units="m/s")

@@ -21,7 +21,7 @@ end # struct swparams
 function default_params()
     return swparams(
         a = 6.37122e6,
-        Ω = 7.2921e-5,
+        omega = 7.2921e-5,
         g = 9.80616,
         nx = 96,
         ny = 48,
