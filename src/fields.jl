@@ -24,8 +24,9 @@ import Base: +, -, *, /, .=
 *(x::Number, b::Field) = Field(x .* b.data, name=:b.name, units=b.units)
 /(a::Field, y::Number) = Field(a.data ./ y, name=a.name, units=a.units)
 
-function (a::Field) .= (b::Field)
-    a.data .= b.data
+function copyField!(dest::Field, src::Field)
+    dest.data .= src.data
+    return dest
 end
 
 function init_fields(g::Grid)
@@ -33,4 +34,6 @@ function init_fields(g::Grid)
     u = allocate_field(g, name=:u, units="m/s")
     v = allocate_field(g, name=:v, units="m/s")
     return (h=h, u=u, v=v)
+end
+
 end

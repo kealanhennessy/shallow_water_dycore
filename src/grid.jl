@@ -5,32 +5,30 @@ export build_grid
 struct Grid
     nx::Int           # number of longitude points
     ny::Int           # number of latitude points
-    lon::Array{Float64,1}  # longitude array [rad]
-    lat::Array{Float64,1}  # latitude array [rad]
-    dlon::Float64     # grid spacing in longitude
-    dlat::Float64     # grid spacing in latitude
-    coslat::Array{Float64,1} # cos(lat) for metric factors
+    λ::Array{Float64,1}  # longitude array [rad]
+    φ::Array{Float64,1}  # latitude array [rad]
+    dλ::Float64     # grid spacing in longitude
+    dφ::Float64     # grid spacing in latitude
+    cosφ::Array{Float64,1} # cos(lat) for metric factors
     cell_area::Array{Float64,2} # area of each cell
 end 
 
 function build_grid(params)
     nx, ny = params.nx, params.ny
 
-    lon = range(0, 2*pi, length=ny)[begin:end-1] # chop of the end (periodic)
-    lat = range(-pi/2 + pi/(2*ny), pi/2 - pi/(2*ny), length=ny) # chop off the ends (poles)
+    λ = range(0, 2*π, length=ny)[begin:end-1] # chop of the end (periodic)
+    φ = range(-π/2 + π/(2*ny), π/2 - π/(2*ny), length=ny) # chop off the ends (poles)
 
-    dlon = lon[2] - lon[1]
-    dlat = lat[2] - lat[1]
+    dλ = λ[2] - λ[1]
+    dφ = φ[2] - φ[1]
 
-    coslat = cos.(lat)
+    cosφ = cos.(φ)
 
     a = params.a
     cell_area = zeros(nx, ny)
-    for i = 1:nx
-        for j = 1:ny
-            cell_area[i,j] = (a^2) * dlon * dlat * coslat[j]
-        end
-    end
+    cell_area[i,j] .= a^2 * dλ * dφ * cosφ'
 
-    return Grid(nx, ny, lon, lat, dlon, dlat, coslat, cell_area)
+    return Grid(nx, ny, λ, φ, dλ, dφ, cosφ, cell_area)
+end
+
 end
