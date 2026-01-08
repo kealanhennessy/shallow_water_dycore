@@ -13,7 +13,6 @@ struct swparams
     tmax::Float64
 
     h::Float64
-    ν::Float64
     cfl::Float64
     write_interval::Float64
 end # struct swparams
@@ -26,9 +25,8 @@ function default_params()
         nx = 96,
         ny = 48,
         dt = 300.0,
-        tmax = 3600.0*10,  # 10 hours
+        tmax = 3600.0*12,  # 12 hours
         h = 1000.0,
-        ν = 1e7,   # example biharmonic coefficient
         cfl = 0.25,
         write_interval = 1800.0,
     )
