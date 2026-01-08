@@ -42,11 +42,7 @@ function build_grid(params)
     cosφu = cos.(φu)
     cosφv = cos.(φv)
 
-    a = params.a
-    cell_area = zeros(nx, ny)
-    cell_area[i,j] .= a^2 * dλ * dφ * cosφc'
-
-    return Grid(nx, ny, λ, φ, dλ, dφ, cosφ, cell_area)
+    return Grid(nx, ny, dλ, dφ, λc, φc, λu, φu, λv, φv, cosφc, cosφu, cosφv)
 end
 
 end
