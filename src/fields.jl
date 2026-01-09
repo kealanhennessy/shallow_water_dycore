@@ -5,7 +5,6 @@ export Fields, allocate_fields
 
 struct Field{T,N}
     data::Array{T,N}
-    name::Symbol
     units::String
 end
 
@@ -16,9 +15,9 @@ struct Fields
 end
 
 # allocate using each sub-grid’s coordinate lengths
-allocate_η(g::Grid) = Field(zeros(length(g.η.λ), length(g.η.φ)), :η, "m")
-allocate_u(g::Grid) = Field(zeros(length(g.u.λ), length(g.u.φ)), :u, "m/s")
-allocate_v(g::Grid) = Field(zeros(length(g.v.λ), length(g.v.φ)), :v, "m/s")
+allocate_η(g::Grid) = Field(zeros(length(g.η.λ), length(g.η.φ)), "m")
+allocate_u(g::Grid) = Field(zeros(length(g.u.λ), length(g.u.φ)), "m/s")
+allocate_v(g::Grid) = Field(zeros(length(g.v.λ), length(g.v.φ)), "m/s")
 
 function allocate_fields(g::Grid)
     return Fields(allocate_η(g), allocate_u(g), allocate_v(g))
