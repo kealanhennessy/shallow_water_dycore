@@ -2,47 +2,67 @@ module grid
 
 export build_grid
 
+struct ηGrid
+    λ::Vector{Float64}
+    φ::Vector{Float64}
+    cosφ::Vector{Float64}
+end
+
+struct UGrid
+    λ::Vector{Float64}
+    φ::Vector{Float64}
+    cosφ::Vector{Float64}
+end
+
+struct VGrid
+    λ::Vector{Float64}
+    φ::Vector{Float64}
+    cosφ::Vector{Float64}
+end
+
 struct Grid
-    nx::Int           # number of longitude points
-    ny::Int           # number of latitude points
-    
-    λc::Array{Float64,1}  # longitude array [rad]
-    φc::Array{Float64,1}  # latitude array [rad]
-    λu::Array{Float64,1}  # longitude array [rad]
-    φu::Array{Float64,1}  # latitude array [rad]
-    λv::Array{Float64,1}  # longitude array [rad]
-    φv::Array{Float64,1}  # latitude array [rad]
-    
-    dλ::Float64     # grid spacing in longitude
-    dφ::Float64     # grid spacing in latitude
-    
-    cosφc::Array{Float64,1} # cos(lat) for metric factors
-    cosφu::Array{Float64,1} # cos(lat) for metric factors
-    cosφv::Array{Float64,1} # cos(lat) for metric factors
-    
-    cell_area::Array{Float64,2} # area of each cell
-end 
+    nx::Int
+    ny::Int
+    dλ::Float64
+    dφ::Float64
+    η::ηGrid
+    u::UGrid
+    v::VGrid
+end
+
+function build_ηgrid(nx, ny)
+    dλ = 2π / nx
+    λ = (0:nx-1) .* dλ
+
+    φ = range(-π/2 + π/(2*ny), π/2 - π/(2*ny), length=ny)
+    cosφ = cos.(φ)
+
+    return ηGrid(λ, φ, cosφ), dλ
+end
+
+function build_ugrid(η::ηGrid, dλ)
+    λ = η.λ .+ dλ/2
+    φ = η.φ
+    return UGrid(λ, φ, η.cosφ)
+end
+
+function build_vgrid(η::ηGrid, dφ)
+    λ = η.λ
+    φ = η.φ .+ dφ/2
+    cosφ = cos.(φ)
+    return VGrid(λ, φ, cosφ)
+end
 
 function build_grid(params)
     nx, ny = params.nx, params.ny
 
-    λc = range(0, 2*π, length=ny)[begin:end-1] # chop of the end (periodic)
-    φc = range(-π/2 + π/(2*ny), π/2 - π/(2*ny), length=ny) # chop off the ends (poles)
+    η, dλ = build_ηgrid(nx, ny)
+    dφ = η.φ[2] - η.φ[1]
 
-    dλ = λc[2] - λc[1]
-    dφ = φc[2] - φc[1]
+    u = build_ugrid(η, dλ)
+    v = build_vgrid(η, dφ)
 
-    λu = λc .+ dλ/2
-    φu = φc
-
-    λv = λc
-    φv = φc .+ dφ/2
-
-    cosφc = cos.(φc)
-    cosφu = cos.(φu)
-    cosφv = cos.(φv)
-
-    return Grid(nx, ny, dλ, dφ, λc, φc, λu, φu, λv, φv, cosφc, cosφu, cosφv)
+    return Grid(nx, ny, dλ, dφ, η, u, v)
 end
 
 end
