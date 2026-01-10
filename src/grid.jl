@@ -25,10 +25,17 @@ struct Grid
     ny::Int
     dλ::Float64
     dφ::Float64
+    a::Float64
     η::ηGrid
     u::UGrid
     v::VGrid
 end
+
+# η is free surface height, located at cell centers
+# u is zonal velocity, located at east/west faces
+# v is meridional velocity, located at north/south faces
+# λ is longitude
+# φ is latitude
 
 function build_ηgrid(nx, ny)
     dλ = 2π / nx
@@ -55,6 +62,7 @@ end
 
 function build_grid(params)
     nx, ny = params.nx, params.ny
+    a == params.a
 
     η, dλ = build_ηgrid(nx, ny)
     dφ = η.φ[2] - η.φ[1]
@@ -62,7 +70,7 @@ function build_grid(params)
     u = build_ugrid(η, dλ)
     v = build_vgrid(η, dφ)
 
-    return Grid(nx, ny, dλ, dφ, η, u, v)
+    return Grid(nx, ny, dλ, dφ, a, η, u, v)
 end
 
 end

@@ -14,13 +14,17 @@ struct Fields
     v::Field{Float64,2}
 end
 
-# allocate using each sub-grid’s coordinate lengths
-allocate_η(g::Grid) = Field(zeros(length(g.η.λ), length(g.η.φ)), "m")
-allocate_u(g::Grid) = Field(zeros(length(g.u.λ), length(g.u.φ)), "m/s")
-allocate_v(g::Grid) = Field(zeros(length(g.v.λ), length(g.v.φ)), "m/s")
+# use one cell 
+const halo = 1
 
-function allocate_fields(g::Grid)
-    return Fields(allocate_η(g), allocate_u(g), allocate_v(g))
+# allocate using halo's
+# actual values stored in 2:nx-1, 2:ny-1
+allocate_η(grid::Grid) = Field(zeros(grid.nx + 2*halo, grid.ny + 2*halo), "m")
+allocate_u(grid::Grid) = Field(zeros(grid.nx + 2*halo, grid.ny + 2*halo), "m/s")
+allocate_v(grid::Grid) = Field(zeros(grid.nx + 2*halo, grid.ny + 2*halo), "m/s")
+
+function allocate_fields(grid::Grid)
+    return Fields(allocate_η(grid), allocate_u(grid), allocate_v(grid))
 end
 
 end
