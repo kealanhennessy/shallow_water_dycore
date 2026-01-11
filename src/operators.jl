@@ -3,19 +3,21 @@ module operators
 using ..fields
 using ..grid
 
-function d_ucosφ_dλ!(out::Field, u::Field; g::Grid)
-    nx, ny = g.nx, g.ny
-    dλ = g.dλ
-    cosφ = g.η.cosφ   # latitudes aligned with u in your grid choice
-
-    @inbounds for j in 1:ny
-        cj = cosφ[j]
-        for i in 1:nx
-            im1 = (i == 1) ? nx : i - 1   # periodic in longitude
-            out.data[i,j] = (u.data[i,j]*cj - u.data[im1,j]*cj) / dλ
+function div_horizontal_velocity!(div::Field, u::Field, v::Field; grid::Grid)
+    div, u, v = div.data, u.data, v.data
+    
+    nx, ny = grid.nx, grid.ny
+    
+    @inbounds for j ∈ 2:ny+1
+        inv_a_cosφ = grid.η.inv_a_cosφ(j)
+        cosφ = grid.v.cosφ(j)
+        for i ∈ 2:nx+1
+            u_λ = (u[i,j] - u[i-1,j]) / grid.dλ
+            v_φ = (v[i,j]*cosφ - v[i,j-1]*cosφ) / grid.dφ
+            div[i,j] = inv_a_cosφ * u_λ + inv_a_cosφ * v_φ
         end
     end
-    return out
+    return nothing
 end
 
 function ∂φ!(df::Field, f::Field; g::Grid)

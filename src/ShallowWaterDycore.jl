@@ -12,7 +12,7 @@ export run_model
 function run_model(params)
     grid = build_grid(params)
 
-    state = init_state(params)
+    state = allocate_fields(grid)
 
     t = 0.0
     while t < params.tmax
