@@ -5,48 +5,7 @@ using ..grid
 using ..operators
 using ..parameters
  
-export Cache, allocate_cache, compute_rhs!
- 
-# ------------------------------------------------------------------
-# Cache
-# Intermediate fields required to assemble the RHS. Allocated once
-# and reused every timestep to avoid in-loop allocations.
-#
-# All fields follow the same halo convention as Fields (HALO = 1).
-#
-# Grid locations:
-#   dη_dλ    : u-points  (nx   × ny)     zonal pressure gradient
-#   dη_dφ    : v-points  (nx   × ny+1)   meridional pressure gradient
-#   du_dλ    : η-points  (nx   × ny)     zonal flux divergence
-#   dvcosφ_dφ: η-points  (nx   × ny)     meridional flux divergence
-#   v_at_u   : u-points  (nx   × ny)     v interpolated for Coriolis
-#   u_at_v   : v-points  (nx   × ny+1)   u interpolated for Coriolis
-# ------------------------------------------------------------------
-struct Cache
-    dη_dλ    ::Field
-    dη_dφ    ::Field
-    du_dλ    ::Field
-    dvcosφ_dφ::Field
-    v_at_u   ::Field
-    u_at_v   ::Field
-end
- 
-"""
-Allocate zeroed intermediate fields for RHS assembly.
-"""
-function allocate_cache(g::Grid)
-    H = fields.HALO
-    nx, ny = g.nx, g.ny
- 
-    return Cache(
-        Field(zeros(nx + 2H, ny     + 2H), "m/s²"),   # dη_dλ     at u-points
-        Field(zeros(nx + 2H, ny + 1 + 2H), "m/s²"),   # dη_dφ     at v-points
-        Field(zeros(nx + 2H, ny     + 2H), "1/s"),     # du_dλ     at η-points
-        Field(zeros(nx + 2H, ny     + 2H), "1/s"),     # dvcosφ_dφ at η-points
-        Field(zeros(nx + 2H, ny     + 2H), "m/s"),     # v_at_u    at u-points
-        Field(zeros(nx + 2H, ny + 1 + 2H), "m/s"),     # u_at_v    at v-points
-    )
-end
+export compute_rhs!
  
 # ------------------------------------------------------------------
 # Halo filling
@@ -59,7 +18,7 @@ end
 #   west    interior     east
 #   halo                 halo
 # ------------------------------------------------------------------
-function fill_zonal_halos!(q::Fields, g::Grid)
+function fill_zonal_halos!(q::Fields, g::SuperGrid)
     H = fields.HALO
     nx = g.nx
  
@@ -91,7 +50,7 @@ end
 #        south     interior      north
 #        halo                    halo
 # ------------------------------------------------------------------
-function fill_meridional_halos!(q::Fields, g::Grid)
+function fill_meridional_halos!(q::Fields, g::SuperGrid)
     H  = fields.HALO
     ny = g.ny
  
@@ -108,7 +67,7 @@ end
 # the south pole is the first interior row (j = HALO+1 = 2) and
 # the north pole is the last interior row (j = ny+1+HALO = ny+2).
 # ------------------------------------------------------------------
-function apply_polar_bc!(q::Fields, g::Grid)
+function apply_polar_bc!(q::Fields, g::SuperGrid)
     H  = fields.HALO
     ny = g.ny
     q.v.data[:, H+1]    .= 0.0   # south pole
@@ -137,7 +96,7 @@ end
 Compute the RHS of the linearized shallow water equations, writing
 tendencies into `dq`. Modifies `q` halos and `c` in place.
 """
-function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::Grid, p::PhysicalParams)
+function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::PhysicalParams)
  
     # 1. Fill halos for periodicity and poles, apply polar BC
     fill_zonal_halos!(q, g)

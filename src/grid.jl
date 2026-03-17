@@ -1,6 +1,6 @@
 module grid
  
-export SubGrid, Grid, build_grid
+export Grid, SuperGrid, build_grid
  
 # ------------------------------------------------------------------
 # SubGrid
@@ -27,7 +27,7 @@ export SubGrid, Grid, build_grid
 #   cosφ      : cos(φ), used to weight meridional fluxes
 #   inv_a_cosφ: 1 / (a cosφ), used in zonal gradient / divergence
 # ------------------------------------------------------------------
-struct SubGrid
+struct Grid
     λ::Vector{Float64}
     φ::Vector{Float64}
     cosφ::Vector{Float64}
@@ -48,22 +48,22 @@ end
 # condition v = 0 must be enforced at j = 1 (south pole) and
 # j = ny+1 (north pole).
 # ------------------------------------------------------------------
-struct Grid
+struct SuperGrid
     nx::Int
     ny::Int
     dλ::Float64
     dφ::Float64
     inv_a::Float64
-    η::SubGrid
-    u::SubGrid
-    v::SubGrid
+    η::Grid
+    u::Grid
+    v::Grid
 end
  
 # ------------------------------------------------------------------
 # Internal constructors
 # ------------------------------------------------------------------
  
-function build_η_subgrid(a::Float64, nx::Int, ny::Int)
+function build_η_grid(a::Float64, nx::Int, ny::Int)
     dλ = 2π / nx
     dφ = π  / ny
  
@@ -77,7 +77,7 @@ function build_η_subgrid(a::Float64, nx::Int, ny::Int)
     return SubGrid(λ, φ, cosφ, inv_a_cosφ), dλ, dφ
 end
 
-function build_u_subgrid(η::SubGrid, dλ::Float64)
+function build_u_grid(η::Grid, dλ::Float64)
     # u-points are offset half a cell east of η-points in λ.
     # φ is shared with η — no meridional offset.
     λ = η.λ .+ dλ/2
@@ -85,7 +85,7 @@ function build_u_subgrid(η::SubGrid, dλ::Float64)
     return SubGrid(λ, η.φ, η.cosφ, η.inv_a_cosφ)
 end
 
-function build_v_subgrid(a::Float64, η::SubGrid, dφ::Float64)
+function build_v_grid(a::Float64, η::Grid)
     # v-points sit at cell faces in φ, bounding each η cell from
     # below and above. With ny η-points there are ny+1 v-points.
     # The range [-π/2, π/2] places v-points at both poles exactly,
@@ -96,7 +96,7 @@ function build_v_subgrid(a::Float64, η::SubGrid, dφ::Float64)
     cosφ       = cos.(φ)
     inv_a_cosφ = 1.0 ./ (a .* cosφ)
  
-    return SubGrid(η.λ, φ, cosφ, inv_a_cosφ)
+    return Grid(η.λ, φ, cosφ, inv_a_cosφ)
 end
  
 # ------------------------------------------------------------------
@@ -108,11 +108,11 @@ Construct a spherical lat-lon Arakawa C-grid with `nx` zonal and
 `ny` meridional cells. `a` is the planetary radius in metres.
 """
 function build_grid(a::Float64, nx::Int, ny::Int)
-    η, dλ, dφ = build_η_subgrid(a, nx, ny)
-    u         = build_u_subgrid(η, dλ)
-    v         = build_v_subgrid(a, η, dφ)
+    η, dλ, dφ = build_η_grid(a, nx, ny)
+    u         = build_u_grid(η, dλ)
+    v         = build_v_grid(a, η, dφ)
  
-    return Grid(nx, ny, dλ, dφ, 1.0/a, η, u, v)
+    return SuperGrid(nx, ny, dλ, dφ, 1.0/a, η, u, v)
 end
 
 end # module grid

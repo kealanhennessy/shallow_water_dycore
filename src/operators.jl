@@ -43,7 +43,7 @@ export ∂η_∂λ!, ∂η_∂φ!, ∂u_∂λ!, ∂vcosφ_∂φ!, interp_v_to_u!
 """
 Zonal derivative of η at u-points. Output sized nx × ny.
 """
-function ∂η_∂λ!(out::Field, η::Field, g::Grid)
+function ∂η_∂λ!(out::Field, η::Field, g::SuperGrid)
     o = out.data
     h = η.data
     nx, ny = g.nx, g.ny
@@ -74,7 +74,7 @@ end
 """
 Meridional derivative of η at v-points. Output sized nx × ny.
 """
-function ∂η_∂φ!(out::Field, η::Field, g::Grid)
+function ∂η_∂φ!(out::Field, η::Field, g::SuperGrid)
     o = out.data
     h = η.data
     nx, ny = g.nx, g.ny
@@ -104,7 +104,7 @@ end
 """
 Zonal derivative of u at η-points. Output sized nx × ny.
 """
-function ∂u_∂λ!(out::Field, u::Field, g::Grid)
+function ∂u_∂λ!(out::Field, u::Field, g::SuperGrid)
     o = out.data
     ux = u.data
     nx, ny = g.nx, g.ny
@@ -136,7 +136,7 @@ end
 """
 Meridional derivative of v cosφ at η-points. Output sized nx × ny.
 """
-function ∂vcosφ_∂φ!(out::Field, v::Field, g::Grid)
+function ∂vcosφ_∂φ!(out::Field, v::Field, g::SuperGrid)
     o   = out.data
     vx  = v.data
     nx, ny = g.nx, g.ny
@@ -168,7 +168,7 @@ end
 """
 Interpolate v to u-points by four-point averaging. Output sized nx × ny.
 """
-function interp_v_to_u!(out::Field, v::Field, g::Grid)
+function interp_v_to_u!(out::Field, v::Field, g::SuperGrid)
     o  = out.data
     vx = v.data
     nx, ny = g.nx, g.ny
@@ -196,7 +196,7 @@ end
 """
 Interpolate u to v-points by four-point averaging. Output sized nx × (ny+1).
 """
-function interp_u_to_v!(out::Field, u::Field, g::Grid)
+function interp_u_to_v!(out::Field, u::Field, g::SuperGrid)
     o  = out.data
     ux = u.data
     nx, ny = g.nx, g.ny

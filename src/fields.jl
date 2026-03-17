@@ -2,7 +2,7 @@ module fields
  
 using ..grid
  
-export Field, Fields, allocate_fields
+export Cache, Field, Fields, allocate_fields, allocate_cache
  
 # ------------------------------------------------------------------
 # Halo width
@@ -43,24 +43,64 @@ struct Fields
 end
 
 # ------------------------------------------------------------------
+# Cache
+# Intermediate fields required to assemble the RHS. Allocated once
+# and reused every timestep to avoid in-loop allocations.
+#
+# All fields follow the same halo convention as Fields (HALO = 1).
+#
+# Grid locations:
+#   dη_dλ    : u-points  (nx   × ny)     zonal pressure gradient
+#   dη_dφ    : v-points  (nx   × ny+1)   meridional pressure gradient
+#   du_dλ    : η-points  (nx   × ny)     zonal flux divergence
+#   dvcosφ_dφ: η-points  (nx   × ny)     meridional flux divergence
+#   v_at_u   : u-points  (nx   × ny)     v interpolated for Coriolis
+#   u_at_v   : v-points  (nx   × ny+1)   u interpolated for Coriolis
+# ------------------------------------------------------------------
+struct Cache
+    dη_dλ    ::Field
+    dη_dφ    ::Field
+    du_dλ    ::Field
+    dvcosφ_dφ::Field
+    v_at_u   ::Field
+    u_at_v   ::Field
+end
+
+# ------------------------------------------------------------------
 # Internal allocators
 # ------------------------------------------------------------------
- 
-allocate_η(g::Grid) = Field(zeros(g.nx + 2*HALO, g.ny     + 2*HALO), "m")
-allocate_u(g::Grid) = Field(zeros(g.nx + 2*HALO, g.ny     + 2*HALO), "m/s")
-allocate_v(g::Grid) = Field(zeros(g.nx + 2*HALO, g.ny + 1 + 2*HALO), "m/s")
+
+allocate_η(g::SuperGrid) = Field(zeros(g.nx + 2*HALO, g.ny     + 2*HALO), "m")
+allocate_u(g::SuperGrid) = Field(zeros(g.nx + 2*HALO, g.ny     + 2*HALO), "m/s")
+allocate_v(g::SuperGrid) = Field(zeros(g.nx + 2*HALO, g.ny + 1 + 2*HALO), "m/s")
  
 # ------------------------------------------------------------------
 # Public constructors
 # ------------------------------------------------------------------
  
 """
+Allocate zeroed intermediate fields for RHS assembly.
+"""
+function allocate_cache(g::SuperGrid)
+    nx, ny = g.nx, g.ny
+ 
+    return Cache(
+        Field(zeros(nx + 2*HALO, ny     + 2*HALO), "m/s²"),   # dη_dλ     at u-points
+        Field(zeros(nx + 2*HALO, ny + 1 + 2*HALO), "m/s²"),   # dη_dφ     at v-points
+        Field(zeros(nx + 2*HALO, ny     + 2*HALO), "1/s"),     # du_dλ     at η-points
+        Field(zeros(nx + 2*HALO, ny     + 2*HALO), "1/s"),     # dvcosφ_dφ at η-points
+        Field(zeros(nx + 2*HALO, ny     + 2*HALO), "m/s"),     # v_at_u    at u-points
+        Field(zeros(nx + 2*HALO, ny + 1 + 2*HALO), "m/s"),     # u_at_v    at v-points
+    )
+end
+
+"""
     allocate_fields(g::Grid) -> Fields
  
 Allocate a zeroed `Fields` state vector sized to grid `g`,
 including halo cells.
 """
-function allocate_fields(g::Grid)
+function allocate_fields(g::SuperGrid)
     return Fields(allocate_η(g), allocate_u(g), allocate_v(g))
 end
  
