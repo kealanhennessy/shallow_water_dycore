@@ -74,7 +74,7 @@ function build_η_grid(a::Float64, nx::Int, ny::Int)
     cosφ       = cos.(φ)
     inv_a_cosφ = 1.0 ./ (a .* cosφ)
  
-    return SubGrid(λ, φ, cosφ, inv_a_cosφ), dλ, dφ
+    return Grid(λ, φ, cosφ, inv_a_cosφ), dλ, dφ
 end
 
 function build_u_grid(η::Grid, dλ::Float64)
@@ -82,7 +82,7 @@ function build_u_grid(η::Grid, dλ::Float64)
     # φ is shared with η — no meridional offset.
     λ = η.λ .+ dλ/2
  
-    return SubGrid(λ, η.φ, η.cosφ, η.inv_a_cosφ)
+    return Grid(λ, η.φ, η.cosφ, η.inv_a_cosφ)
 end
 
 function build_v_grid(a::Float64, η::Grid)
@@ -107,7 +107,7 @@ end
 Construct a spherical lat-lon Arakawa C-grid with `nx` zonal and
 `ny` meridional cells. `a` is the planetary radius in metres.
 """
-function build_grid(a::Float64, nx::Int, ny::Int)
+function build_supergrid(a::Float64, nx::Int, ny::Int)
     η, dλ, dφ = build_η_grid(a, nx, ny)
     u         = build_u_grid(η, dλ)
     v         = build_v_grid(a, η, dφ)

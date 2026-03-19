@@ -5,7 +5,7 @@ using ..grid
 using ..operators
 using ..parameters
  
-export compute_rhs!
+export compute_tendencies!
  
 # ------------------------------------------------------------------
 # Halo filling
@@ -86,7 +86,7 @@ end
 #   ∂η/∂t = -(H / a cosφ) * (∂u/∂λ + ∂(v cosφ)/∂φ)
 #
 # Arguments:
-#   dq  : tendency Fields (∂u/∂t, ∂v/∂t, ∂η/∂t), overwritten
+#   dqdt  : tendency Fields (∂u/∂t, ∂v/∂t, ∂η/∂t), overwritten
 #   q   : current state Fields (u, v, η)
 #   c   : Cache of intermediate fields, overwritten
 #   g   : Grid
@@ -94,9 +94,9 @@ end
 # ------------------------------------------------------------------
 """
 Compute the RHS of the linearized shallow water equations, writing
-tendencies into `dq`. Modifies `q` halos and `c` in place.
+tendencies into `dqdt`. Modifies `q` halos and `c` in place.
 """
-function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::PhysicalParams)
+function compute_tendencies!(dqdt::Fields, q::Fields, c::Cache, g::SuperGrid, pp::PhysicalParams)
  
     # 1. Fill halos for periodicity and poles, apply polar BC
     fill_zonal_halos!(q, g)
@@ -117,9 +117,9 @@ function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::Physical
     nx, ny = g.nx, g.ny
     H = fields.HALO
  
-    du = dq.u.data
-    dv = dq.v.data
-    dη = dq.η.data
+    dudt = dqdt.u.data
+    dvdt = dqdt.v.data
+    dηdt = dqdt.η.data
  
     # u-tendency: fv̄ - (g / a cosφ) ∂η/∂λ
     @inbounds for j ∈ H+1:ny+H
@@ -127,7 +127,7 @@ function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::Physical
         f         = 2p.Ω * sin(φⱼ)
         inv_a_cosφ = g.u.inv_a_cosφ[j-H]
         for i ∈ H+1:nx+H
-            du[i,j] = f * c.v_at_u.data[i,j] - p.g * inv_a_cosφ * c.dη_dλ.data[i,j]
+            dudt[i,j] = f * c.v_at_u.data[i,j] - pp.g * inv_a_cosφ * c.dη_dλ.data[i,j]
         end
     end
  
@@ -137,7 +137,7 @@ function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::Physical
         f   = 2p.Ω * sin(φⱼ)
         inv_a = g.inv_a
         for i ∈ H+1:nx+H
-            dv[i,j] = -f * c.u_at_v.data[i,j] - p.g * inv_a * c.dη_dφ.data[i,j]
+            dvdt[i,j] = -f * c.u_at_v.data[i,j] - pp.g * inv_a * c.dη_dφ.data[i,j]
         end
     end
  
@@ -145,7 +145,7 @@ function compute_rhs!(dq::Fields, q::Fields, c::Cache, g::SuperGrid, p::Physical
     @inbounds for j ∈ H+1:ny+H
         inv_a_cosφ = g.η.inv_a_cosφ[j-H]
         for i ∈ H+1:nx+H
-            dη[i,j] = -p.H * inv_a_cosφ * (c.du_dλ.data[i,j] + c.dvcosφ_dφ.data[i,j])
+            dηdt[i,j] = -pp.H * inv_a_cosφ * (c.du_dλ.data[i,j] + c.dvcosφ_dφ.data[i,j])
         end
     end
  

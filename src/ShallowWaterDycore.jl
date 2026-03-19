@@ -9,20 +9,20 @@ include("io.jl")
 
 export run_model
 
-function run_model(params)
-    grid = build_grid(params)
+function run_model(physical_params, numerical_params)
+    grid = build_supergrid(physical_params)
 
     state = allocate_fields(grid)
 
+    tendencies = allocate_fields(grid)
+
+    cache = allocate_cache(grid)
+
     t = 0.0
-    while t < params.tmax
-        tendencies = compute_tendencies(grid, state, params)
+    while t < numerical_params.tmax
+        advance_state!(tendencies, state, cache, grid, physical_params, numerical_params)
 
-        state = advance_state(grid, state, params, tendencies)
-
-        apply_boundary_conditions!(grid, state, params)
-
-        t += params.dt
+        t += numerical_params.dt
     end # main time stepping loop
 
 end # run_model

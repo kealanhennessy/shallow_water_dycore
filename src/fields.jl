@@ -95,8 +95,6 @@ function allocate_cache(g::SuperGrid)
 end
 
 """
-    allocate_fields(g::Grid) -> Fields
- 
 Allocate a zeroed `Fields` state vector sized to grid `g`,
 including halo cells.
 """
@@ -105,8 +103,6 @@ function allocate_fields(g::SuperGrid)
 end
  
 """
-    Base.similar(f::Fields) -> Fields
- 
 Allocate a new `Fields` with the same array sizes and units as `f`
 but with zeroed data. Used by the SSPRK3 integrator to allocate
 intermediate stage arrays without needing to know the internal
