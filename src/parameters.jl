@@ -36,6 +36,8 @@ Base.@kwdef struct NumericalParams
     tmax::Float64           = 3600.0 * 12   # 12 hours
     cfl::Float64            = 0.25
     write_interval::Float64 = 1800.0
+    nx::Int                 = 144
+    ny::Int                 = 72
 end
  
 # ------------------------------------------------------------------

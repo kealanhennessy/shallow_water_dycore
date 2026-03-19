@@ -16,11 +16,15 @@ function run_model(physical_params, numerical_params)
 
     tendencies = allocate_fields(grid)
 
+    state_stage = allocate_fields(grid)
+
+    tendencies_stage = allocate_fields(grid)
+
     cache = allocate_cache(grid)
 
     t = 0.0
     while t < numerical_params.tmax
-        advance_state!(tendencies, state, cache, grid, physical_params, numerical_params)
+        advance_state!(tendencies, state, tendencies_stage, state_stage, cache, grid, physical_params, numerical_params)
 
         t += numerical_params.dt
     end # main time stepping loop

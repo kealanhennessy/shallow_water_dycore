@@ -22,17 +22,13 @@ end
 """
 Update the current state q using the tendencies dqdt.
 """
-function advance_state!(dqdt::Fields, q::Fields, c::Cache, g::SuperGrid, pp::PhysicalParams, np::NumericalParams)
-    
-    q_stage = similar(q)
-    dqdt_stage = similar(dqdt)
+function advance_state!(dqdt::Fields, q::Fields, dqdt_stage::Fields, q_stage::Fields, c::Cache, g::SuperGrid, pp::PhysicalParams, np::NumericalParams)
 
     compute_tendencies!(dqdt, q, c, g, pp)
 
     α = 0
     β = 1
 
-    # q_stage unused
     ssprk3_stage!(q_stage, q, q_stage, dqdt, α, Β, np.dt)
 
     compute_tendencies!(dqdt_stage, q_stage, c, g, pp)

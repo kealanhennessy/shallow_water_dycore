@@ -102,18 +102,4 @@ function allocate_fields(g::SuperGrid)
     return Fields(allocate_η(g), allocate_u(g), allocate_v(g))
 end
  
-"""
-Allocate a new `Fields` with the same array sizes and units as `f`
-but with zeroed data. Used by the SSPRK3 integrator to allocate
-intermediate stage arrays without needing to know the internal
-structure of `Fields`.
-"""
-function Base.similar(f::Fields)
-    return Fields(
-        Field(similar(f.η.data), f.η.units),
-        Field(similar(f.u.data), f.u.units),
-        Field(similar(f.v.data), f.v.units),
-    )
-end
- 
 end # module fields

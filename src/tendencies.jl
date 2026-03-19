@@ -1,4 +1,4 @@
-module rhs
+module tendencies
  
 using ..fields
 using ..grid
@@ -57,7 +57,7 @@ function fill_meridional_halos!(q::Fields, g::SuperGrid)
     # η south halo ← first interior row
     q.η.data[:, H]      .= q.η.data[:, H+1]
     # η north halo ← last interior row
-    q.η.data[:, ny+1+H] .= q.η.data[:, ny+1]
+    q.η.data[:, ny+1+H] .= q.η.data[:, ny+H]
     return nothing
 end
  
@@ -124,19 +124,19 @@ function compute_tendencies!(dqdt::Fields, q::Fields, c::Cache, g::SuperGrid, pp
     # u-tendency: fv̄ - (g / a cosφ) ∂η/∂λ
     @inbounds for j ∈ H+1:ny+H
         φⱼ        = g.u.φ[j-H]           # latitude at this u-row
-        f         = 2p.Ω * sin(φⱼ)
+        f         = 2 * pp.Ω * sin(φⱼ)
         inv_a_cosφ = g.u.inv_a_cosφ[j-H]
-        for i ∈ H+1:nx+H
+        @simd for i ∈ H+1:nx+H
             dudt[i,j] = f * c.v_at_u.data[i,j] - pp.g * inv_a_cosφ * c.dη_dλ.data[i,j]
         end
     end
  
     # v-tendency: -fū - (g / a) ∂η/∂φ
+    inv_a = g.inv_a
     @inbounds for j ∈ H+1:ny+H
         φⱼ  = g.v.φ[j-H]                 # latitude at this v-row
-        f   = 2p.Ω * sin(φⱼ)
-        inv_a = g.inv_a
-        for i ∈ H+1:nx+H
+        f   = 2 * pp.Ω * sin(φⱼ)
+        @simd for i ∈ H+1:nx+H
             dvdt[i,j] = -f * c.u_at_v.data[i,j] - pp.g * inv_a * c.dη_dφ.data[i,j]
         end
     end
@@ -144,7 +144,7 @@ function compute_tendencies!(dqdt::Fields, q::Fields, c::Cache, g::SuperGrid, pp
     # η-tendency: -(H / a cosφ) * (∂u/∂λ + ∂(v cosφ)/∂φ)
     @inbounds for j ∈ H+1:ny+H
         inv_a_cosφ = g.η.inv_a_cosφ[j-H]
-        for i ∈ H+1:nx+H
+        @simd for i ∈ H+1:nx+H
             dηdt[i,j] = -pp.H * inv_a_cosφ * (c.du_dλ.data[i,j] + c.dvcosφ_dφ.data[i,j])
         end
     end

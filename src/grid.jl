@@ -1,9 +1,11 @@
 module grid
+
+using ..parameters
  
-export Grid, SuperGrid, build_grid
+export Grid, SuperGrid, build_supergrid
  
 # ------------------------------------------------------------------
-# SubGrid
+# Grid
 # Holds the coordinates and precomputed metric weights for one of
 # the three C-grid locations (η, u, v). The distinction between
 # locations is carried by the field names in Grid (grid.η, grid.u,
@@ -35,7 +37,7 @@ struct Grid
 end
 
 # ------------------------------------------------------------------
-# Grid
+# SuperGrid
 # Top-level grid struct. Holds global dimensions, uniform spacings,
 # 1/a, and the three staggered subgrids.
 #
@@ -107,10 +109,10 @@ end
 Construct a spherical lat-lon Arakawa C-grid with `nx` zonal and
 `ny` meridional cells. `a` is the planetary radius in metres.
 """
-function build_supergrid(a::Float64, nx::Int, ny::Int)
-    η, dλ, dφ = build_η_grid(a, nx, ny)
+function build_supergrid(pp::PhysicalParams, np::NumericalParams)
+    η, dλ, dφ = build_η_grid(pp.a, np.nx, np.ny)
     u         = build_u_grid(η, dλ)
-    v         = build_v_grid(a, η, dφ)
+    v         = build_v_grid(a, η)
  
     return SuperGrid(nx, ny, dλ, dφ, 1.0/a, η, u, v)
 end
